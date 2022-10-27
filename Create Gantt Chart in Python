@@ -1,0 +1,68 @@
+
+#import libraries
+import pandas as pd
+import matplotlib.pyplot as plt
+import datetime as dt
+
+#Read Data
+df = pd.read_csv('data.csv',encoding='latin-1')
+df
+
+#Convert dates to datetime format
+df.start=pd.to_datetime(df.start)
+df.end=pd.to_datetime(df.end)
+
+#Add Duration
+df['duration']=df.end-df.start
+df.duration=df.duration.apply(lambda x: x.days+1)
+
+#sort in ascending order of start date
+df=df.sort_values(by='start', ascending=True)
+
+#project timeline variables
+p_start=df.start.min()
+p_end=df.end.max()
+p_duration=(p_end-p_start).days+1
+
+#Add relative date
+df['rel_start']=df.start.apply(lambda x: (x-p_start).days)
+
+#Create custom x-ticks and x-tick labels
+x_ticks=[i for i in range(p_duration+1)]
+x_labels=[(p_start+dt.timedelta(days=i)).strftime('%d-%b') 
+          for i in x_ticks]
+
+#Define completion width
+df['w_comp']=round(df.completion*df.duration/100,2)
+df
+
+#Plot figure
+yticks=[i for i in range(len(df.task))]
+
+plt.figure(figsize=(20,10))
+
+plt.title('Timeline', size=20)
+for i in range(df.shape[0]):
+    color=df.owner[i]
+    plt.barh(y=df.task[i], left=df.rel_start[i], 
+             width=df.duration[i], alpha=0.4, 
+             color='green')
+    plt.barh(y=df.task[i], left=df.rel_start[i], 
+             width=df.w_comp[i], alpha=1, color='green')
+    plt.text(x=df.rel_start[i]+df.w_comp[i],
+             y=yticks[i],
+             s=f'{df.completion[i]}%')
+    plt.text(x=df.rel_start[i]+df.duration[i],
+             y=yticks[i],
+             s=f'Owner: {df.owner[i]}')
+                       
+plt.gca().invert_yaxis()
+plt.xticks(ticks=x_ticks[::10], labels=x_labels[::10])
+plt.yticks(ticks=yticks, wrap=True)
+#plt.grid(axis='x')
+for spine in plt.gca().spines.values():
+    spine.set_visible(False)
+plt.savefig('timeline.png', dpi=100)
+
+
+
