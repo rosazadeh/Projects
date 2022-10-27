@@ -16,10 +16,10 @@ df.end=pd.to_datetime(df.end)
 df['duration']=df.end-df.start
 df.duration=df.duration.apply(lambda x: x.days+1)
 
-#sort in ascending order of start date
+#Sort in ascending order of start date
 df=df.sort_values(by='start', ascending=True)
 
-#project timeline variables
+#Project timeline variables
 p_start=df.start.min()
 p_end=df.end.max()
 p_duration=(p_end-p_start).days+1
